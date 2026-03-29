@@ -1,0 +1,78 @@
+package views
+
+templ StatsPage(
+	from string,
+	to string,
+	kind string,
+	limitStr string,
+	offsetStr string,
+	summaryJSON string,
+	assetsJSON string,
+	errMsg string,
+	hubDisabled bool,
+) {
+	@Base("Stats", statsBody(from, to, kind, limitStr, offsetStr, summaryJSON, assetsJSON, errMsg, hubDisabled))
+}
+
+templ statsBody(
+	from string,
+	to string,
+	kind string,
+	limitStr string,
+	offsetStr string,
+	summaryJSON string,
+	assetsJSON string,
+	errMsg string,
+	hubDisabled bool,
+) {
+	<section>
+		<h1 style="margin-top:0;">Stats</h1>
+		if hubDisabled {
+			<div class="hub-alert">Hub API is disabled on Tiamat (503).</div>
+		}
+		if errMsg != "" && !hubDisabled {
+			<div class="hub-alert">{ errMsg }</div>
+		}
+		<div class="hub-card">
+			<h2>Summary</h2>
+			<p class="hub-muted">Use <code>YYYY-MM-DD</code> (UTC day bounds) or full RFC3339 timestamps.</p>
+			<form method="get" action="/stats" class="hub-inline-form">
+				<div>
+					<label for="from">From</label>
+					<input type="text" id="from" name="from" value={ from } placeholder="2006-01-02"/>
+				</div>
+				<div>
+					<label for="to">To</label>
+					<input type="text" id="to" name="to" value={ to } placeholder="2006-01-02"/>
+				</div>
+				<button type="submit" class="hub-btn">Load summary</button>
+			</form>
+			if summaryJSON != "" {
+				<pre class="hub-json">{ summaryJSON }</pre>
+			}
+		</div>
+		<div class="hub-card">
+			<h2>Per-asset</h2>
+			<form method="get" action="/stats" class="hub-inline-form">
+				<input type="hidden" name="from" value={ from }/>
+				<input type="hidden" name="to" value={ to }/>
+				<div>
+					<label for="kind">Kind</label>
+					<input type="text" id="kind" name="kind" value={ kind }/>
+				</div>
+				<div>
+					<label for="limit">Limit</label>
+					<input type="text" id="limit" name="limit" value={ limitStr }/>
+				</div>
+				<div>
+					<label for="offset">Offset</label>
+					<input type="text" id="offset" name="offset" value={ offsetStr }/>
+				</div>
+				<button type="submit" class="hub-btn" name="assets" value="1">Load assets</button>
+			</form>
+			if assetsJSON != "" {
+				<pre class="hub-json">{ assetsJSON }</pre>
+			}
+		</div>
+	</section>
+}

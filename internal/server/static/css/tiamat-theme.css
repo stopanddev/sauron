@@ -1,0 +1,243 @@
+/* Forest theme tokens aligned with Tiamat (see media_server static/css/styles.css). */
+:root {
+  --bg: #0d1110;
+  --surface: #161b19;
+  --card: #1c2220;
+  --nav-bg: #0f1714;
+  --green-bright: #34d399;
+  --text: #e6ede9;
+  --text-muted: #9ca8a3;
+  --border: #2d3834;
+  --border-subtle: #232b28;
+  --error: #f87171;
+  --hub-panel: #141a18;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+@media (min-width: 1800px) {
+  html {
+    font-size: 22px;
+  }
+}
+
+body.hub-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    Ubuntu,
+    Cantarell,
+    Noto Sans,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--green-bright);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.hub-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--nav-bg), #065f46 120%);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 720px) {
+  .hub-nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.hub-brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  margin-right: auto;
+}
+
+.hub-nav a.nav-link {
+  color: var(--text);
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+}
+
+.hub-nav a.nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  text-decoration: none;
+}
+
+.hub-content {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 2rem;
+}
+
+@media (min-width: 1800px) {
+  .hub-content {
+    max-width: 56rem;
+    padding: 1.5rem 2rem 3rem;
+  }
+}
+
+.hub-card {
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.hub-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.hub-muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.hub-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  border: 1px solid var(--border);
+}
+
+.hub-badge.ok {
+  color: var(--green-bright);
+  border-color: var(--green-bright);
+}
+
+.hub-badge.err {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.hub-btn {
+  display: inline-block;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--green-bright);
+  background: transparent;
+  color: var(--green-bright);
+  font: inherit;
+  cursor: pointer;
+}
+
+.hub-btn:hover {
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.hub-btn-danger {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.hub-btn-danger:hover {
+  background: rgba(248, 113, 113, 0.12);
+}
+
+label {
+  display: block;
+  margin: 0.5rem 0 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="datetime-local"],
+textarea,
+select {
+  width: 100%;
+  max-width: 28rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+table.hub-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+table.hub-table th,
+table.hub-table td {
+  text-align: left;
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+pre.hub-json {
+  overflow: auto;
+  max-height: 24rem;
+  padding: 0.75rem;
+  background: var(--hub-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  font-size: 0.75rem;
+}
+
+.hub-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--error);
+  color: var(--error);
+  margin-bottom: 1rem;
+}
+
+.hub-alert.info {
+  border-color: var(--green-bright);
+  color: var(--green-bright);
+}
+
+.hub-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+@media (min-width: 721px) {
+  .hub-inline-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: flex-end;
+  }
+
+  .hub-inline-form label {
+    margin: 0;
+  }
+}

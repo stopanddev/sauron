@@ -1,0 +1,22 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Templ generate
+        run: go run github.com/a-h/templ/cmd/templ@latest generate
+      - name: Test
+        run: go test ./...
+      - name: Build
+        run: go build -o /tmp/sauron ./cmd/sauron

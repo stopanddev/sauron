@@ -1,0 +1,117 @@
+package views
+
+// TiamatControlRow: reuse this pattern for additional managed apps later (loop over a slice).
+templ DashboardPage(
+	healthy bool,
+	healthSnippet string,
+	hubDisabled bool,
+	tokenMissing bool,
+	statusErr string,
+	version string,
+	uptime string,
+	dbOk string,
+	canStart bool,
+	canStop bool,
+	controlNotice string,
+	controlNoticeErr bool,
+) {
+	@Base("Status", dashboardBody(healthy, healthSnippet, hubDisabled, tokenMissing, statusErr, version, uptime, dbOk, canStart, canStop, controlNotice, controlNoticeErr))
+}
+
+templ dashboardBody(
+	healthy bool,
+	healthSnippet string,
+	hubDisabled bool,
+	tokenMissing bool,
+	statusErr string,
+	version string,
+	uptime string,
+	dbOk string,
+	canStart bool,
+	canStop bool,
+	controlNotice string,
+	controlNoticeErr bool,
+) {
+	<section>
+		<h1 class="hub-muted" style="margin-top:0;font-size:1.5rem;color:var(--text);">Tiamat</h1>
+		@StatusFragment(healthy, healthSnippet, hubDisabled, tokenMissing, statusErr, version, uptime, dbOk, canStart, canStop, controlNotice, controlNoticeErr)
+	</section>
+}
+
+templ StatusFragment(
+	healthy bool,
+	healthSnippet string,
+	hubDisabled bool,
+	tokenMissing bool,
+	statusErr string,
+	version string,
+	uptime string,
+	dbOk string,
+	canStart bool,
+	canStop bool,
+	controlNotice string,
+	controlNoticeErr bool,
+) {
+	<section id="status-partial" class="hub-card" hx-get="/partials/status" hx-trigger="every 10s" hx-swap="outerHTML">
+		<h2>Process &amp; hub API</h2>
+		if controlNotice != "" {
+			if controlNoticeErr {
+				<div class="hub-alert">{ controlNotice }</div>
+			} else {
+				<div class="hub-alert info">{ controlNotice }</div>
+			}
+		}
+		<div class="hub-stack" style="margin-bottom:0.75rem;">
+			if healthy {
+				<span class="hub-badge ok">/healthz up</span>
+			} else {
+				<span class="hub-badge err">/healthz down</span>
+			}
+			if tokenMissing {
+				<span class="hub-muted">Set TIAMAT_HUB_TOKEN for hub APIs.</span>
+			}
+			if hubDisabled {
+				<span class="hub-badge err">Hub API disabled on Tiamat</span>
+			}
+		</div>
+		if healthSnippet != "" {
+			<p class="hub-muted">Healthz body: { healthSnippet }</p>
+		}
+		if statusErr != "" && !hubDisabled {
+			<p class="hub-alert">{ statusErr }</p>
+		}
+		if canStart || canStop {
+			<div class="hub-stack" style="margin-top:1rem;align-items:flex-start;gap:1rem;">
+				<div>
+					<p class="hub-muted" style="margin:0 0 0.35rem;font-size:0.85rem;">Start</p>
+					if canStart && !healthy {
+						<form method="post" action="/tiamat/start" style="margin:0;">
+							<button type="submit" class="hub-btn" hx-confirm="Start Tiamat on this host?">Start Tiamat</button>
+						</form>
+					} else {
+						<button type="button" class="hub-btn" disabled style="opacity:0.5;cursor:not-allowed;">Start Tiamat</button>
+					}
+				</div>
+				<div>
+					<p class="hub-muted" style="margin:0 0 0.35rem;font-size:0.85rem;">Stop</p>
+					if canStop && healthy {
+						<form method="post" action="/tiamat/stop" style="margin:0;">
+							<button type="submit" class="hub-btn hub-btn-danger" hx-confirm="Stop Tiamat on this host?">Stop Tiamat</button>
+						</form>
+					} else {
+						<button type="button" class="hub-btn hub-btn-danger" disabled style="opacity:0.5;cursor:not-allowed;">Stop Tiamat</button>
+					}
+				</div>
+			</div>
+		}
+		if !hubDisabled && !tokenMissing && statusErr == "" && version != "" {
+			<table class="hub-table">
+				<tbody>
+					<tr><th>Version</th><td>{ version }</td></tr>
+					<tr><th>Uptime</th><td>{ uptime }</td></tr>
+					<tr><th>DB OK</th><td>{ dbOk }</td></tr>
+				</tbody>
+			</table>
+		}
+	</section>
+}

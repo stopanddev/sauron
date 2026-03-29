@@ -1,0 +1,77 @@
+
+App hub handoff: design, HTMX, and Tiamat APIs
+Purpose
+sauron is the external dashboard that talks to Tiamat (media_server) and other apps. This doc preserves visual language, responsive/TV behavior, HTMX-style interaction, and the server-to-server APIs Tiamat already exposes.
+
+Visual identity to persist (Tiamat “forest” theme)
+Source of truth in Tiamat: static/css/styles.css — :root CSS variables:
+
+Token	Role (approx.)
+--bg	Page background (#0d1110)
+--surface / --card	Panels / items
+--nav-bg	Nav gradient base
+--nav-bg + gradient #065f46	Nav bar (see nav rule)
+--green-bright	Primary accent, borders
+--text / --text-muted	Body / secondary
+--border / --border-subtle	Borders
+--error	Errors
+Practical approach for sauron:
+
+Copy the :root block (and any shared nav / button utilities you need) into a hub stylesheet, or import a small tiamat-theme.css that only contains variables + base html, body.
+Keep Inter (or system stack) for parity: font-family: 'Inter', system-ui, ....
+Don’t re-invent colors; extend with --hub-* only if you need hub-specific surfaces.
+Breakpoints: mobile vs desktop vs TV
+Tiamat uses max-width: 720px for “phone” and min-width: 721px for desktop (e.g. nav drawer collapse). There is also a TV / large monitor block at min-width: 1800px that bumps root font-size to 22px and widens library grids — see “TV” section in styles.css around the @media (min-width: 1800px) rule.
+
+For sauron:
+
+Treat 721px as the main desktop/mobile split if you mirror Tiamat.
+1800px+ is your “10-foot UI / TV” tier: larger type, fewer dense columns, bigger hit targets.
+Other breakpoints (e.g. 520px, 900px, 380px) exist for library toolbars — reuse only if you copy those components.
+HTMX design philosophy (as Tiamat uses it)
+Tiamat is server-rendered HTML with HTMX for partial updates:
+
+Full pages use templ layouts; swaps target #content (and #player-slot for players) via hx-get, hx-target, hx-swap.
+Auth-aware UX: 401 / 403 responses use HX-Redirect (see internal/auth/middleware.go) so the client navigates correctly.
+Prefer: GET/POST that return HTML fragments over ad-hoc JSON for UI unless the consumer is hub (JSON APIs below).
+For sauron:
+
+Same idea: hypermedia-first — forms and links that return HTML, or small JSON only for dashboard widgets that aren’t worth templating.
+If the hub is mostly dashboards (charts, tables), JSON + minimal JS is fine; still align with Tiamat’s colors, spacing, and typography so it feels like one product family.
+Reuse patterns: hx-boost for navigation, hx-target + hx-swap="outerHTML" for fragments, respect HX-Request if you ever proxy through Tiamat’s patterns.
+Tiamat APIs the hub must know (server-to-server)
+Auth: Authorization: Bearer <TIAMAT_HUB_TOKEN> (env on Tiamat server).
+
+If TIAMAT_HUB_TOKEN is unset, hub routes return 503 with JSON {"error":"hub API disabled..."}.
+
+Documented in hub_api.go (comments at top):
+
+Method	Path	Notes
+GET	/api/hub/v1/users	List users
+POST	/api/hub/v1/users	Create {username,password,is_admin?}
+PATCH	/api/hub/v1/users/{username}	password / is_admin / disabled
+DELETE	/api/hub/v1/users/{username}	Soft-disable
+GET	/api/hub/v1/stats/summary	from, to RFC3339; aggregates by kind, playback vs download bytes, etc.
+GET	/api/hub/v1/stats/assets	Per-asset stats; kind, limit, offset
+GET	/api/hub/v1/status	uptime_seconds, version, db_ok
+POST	/api/hub/v1/restart	Graceful shutdown; systemd/docker must restart the process
+No Bearer (liveness):
+
+GET /healthz → plain ok (process up).
+Not a hub JSON API: browser login uses cookie session (TIAMAT_SESSION_SECRET); that’s for humans, not for the hub service.
+
+Base URL: configure TIAMAT_BASE_URL (or similar) in sauron pointing at Tiamat’s public origin (e.g. https://tiamat.example.com).
+
+Operational notes for “bounce” + status
+Running vs down: If Tiamat is down, no HTTP — detect via TCP/proxy failure or health check to /healthz.
+Restart: POST /api/hub/v1/restart stops the server; restart requires Restart=always (or equivalent). See DEPLOY.md in Tiamat.
+templ and *_templ.go
+Source: views/**/*.templ.
+Generated: *_templ.go — do not edit by hand; run templ generate before build.
+Optional CI: templ generate && go build.
+Checklist for a new agent on sauron
+Import or duplicate :root theme from Tiamat styles.css.
+Decide breakpoints (720 / 721, 1800 for TV).
+HTMX for hub UI where pages are document-like; JSON for pure dashboard metrics if needed.
+Integrate Tiamat using Bearer + table of endpoints above; handle 503 as “hub API disabled on server.”
+Never embed TIAMAT_SESSION_SECRET in the hub for API calls — use hub token only for /api/hub/v1/*.

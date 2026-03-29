@@ -1,0 +1,122 @@
+package views
+
+templ UsersPage(
+	users []UserRow,
+	createErr string,
+	createOk string,
+	patchErr string,
+	hubDisabled bool,
+	tokenMissing bool,
+) {
+	@Base("Users", usersBody(users, createErr, createOk, patchErr, hubDisabled, tokenMissing))
+}
+
+templ usersBody(
+	users []UserRow,
+	createErr string,
+	createOk string,
+	patchErr string,
+	hubDisabled bool,
+	tokenMissing bool,
+) {
+	<section>
+		<h1 style="margin-top:0;">Users</h1>
+		if tokenMissing {
+			<div class="hub-alert">Set TIAMAT_HUB_TOKEN to manage users.</div>
+		}
+		if hubDisabled {
+			<div class="hub-alert">Hub API is disabled on Tiamat (503).</div>
+		}
+		if createErr != "" {
+			<div class="hub-alert">{ createErr }</div>
+		}
+		if createOk != "" {
+			<div class="hub-alert info">{ createOk }</div>
+		}
+		if patchErr != "" {
+			<div class="hub-alert">{ patchErr }</div>
+		}
+		<div class="hub-card">
+			<h2>Create user</h2>
+			<form method="post" action="/users" class="hub-inline-form">
+				<div>
+					<label for="new_username">Username</label>
+					<input type="text" id="new_username" name="username" required autocomplete="username"/>
+				</div>
+				<div>
+					<label for="new_password">Password</label>
+					<input type="password" id="new_password" name="password" required autocomplete="new-password"/>
+				</div>
+				<div>
+					<label for="new_is_admin">Admin</label>
+					<input type="checkbox" id="new_is_admin" name="is_admin" value="true"/>
+				</div>
+				<button type="submit" class="hub-btn" name="action" value="create">Create</button>
+			</form>
+		</div>
+		<div class="hub-card">
+			<h2>Accounts</h2>
+			if len(users) == 0 {
+				<p class="hub-muted">No users returned.</p>
+			} else {
+				<table class="hub-table">
+					<thead>
+						<tr>
+							<th>User</th>
+							<th>Admin</th>
+							<th>Disabled</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, u := range users {
+							@userEditRow(u)
+						}
+					</tbody>
+				</table>
+			}
+		</div>
+	</section>
+}
+
+templ userEditRow(u UserRow) {
+	<tr>
+		<td>{ u.Username }</td>
+		<td>
+			if u.IsAdmin {
+				yes
+			} else {
+				no
+			}
+		</td>
+		<td>
+			if u.Disabled {
+				yes
+			} else {
+				no
+			}
+		</td>
+		<td>
+			<form method="post" action="/users" style="display:inline;" class="hub-stack">
+				<input type="hidden" name="username" value={ u.Username }/>
+				<input type="password" name="password" placeholder="new password" autocomplete="new-password" style="max-width:10rem;"/>
+				<div>
+					<label for={ "is_admin_" + u.Username } style="display:inline;">Admin</label>
+					<select name="is_admin" id={ "is_admin_" + u.Username }>
+						<option value="false" selected?={ !u.IsAdmin }>no</option>
+						<option value="true" selected?={ u.IsAdmin }>yes</option>
+					</select>
+				</div>
+				<div>
+					<label for={ "disabled_" + u.Username } style="display:inline;">Disabled</label>
+					<select name="disabled" id={ "disabled_" + u.Username }>
+						<option value="false" selected?={ !u.Disabled }>no</option>
+						<option value="true" selected?={ u.Disabled }>yes</option>
+					</select>
+				</div>
+				<button type="submit" class="hub-btn" name="action" value="patch">Save</button>
+				<button type="submit" class="hub-btn hub-btn-danger" name="action" value="delete" hx-confirm="Soft-disable this user?">Disable</button>
+			</form>
+		</td>
+	</tr>
+}

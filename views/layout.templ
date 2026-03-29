@@ -1,0 +1,27 @@
+package views
+
+// Base is the hub shell: nav, #content, HTMX. When adding auth, mirror Tiamat: respond to
+// HX-Request with HX-Redirect on 401/403 so partial loads navigate correctly.
+templ Base(title string, body templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ title } · Sauron</title>
+			<link rel="stylesheet" href="/static/css/tiamat-theme.css"/>
+			<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+		</head>
+		<body class="hub-body" hx-boost="true">
+			<nav class="hub-nav">
+				<span class="hub-brand">Sauron</span>
+				<a class="nav-link" href="/">Status</a>
+				<a class="nav-link" href="/stats">Stats</a>
+				<a class="nav-link" href="/users">Users</a>
+			</nav>
+			<main id="content" class="hub-content">
+				@body
+			</main>
+		</body>
+	</html>
+}
